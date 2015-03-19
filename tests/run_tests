@@ -1,0 +1,5 @@
+#! /bin/sh
+LTDL_LIBRARY_PATH=.:lib/.libs \
+                 guile --no-auto-compile \
+                       -L $(dirname 0)/../lib \
+                 $(dirname $0)/test_disguile.scm
