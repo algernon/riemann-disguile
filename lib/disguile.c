@@ -257,6 +257,136 @@ disguile_send (SCM client_smob, SCM events)
   return SCM_BOOL_T;
 }
 
+static SCM
+_disguile_event_to_alist (riemann_event_t *event)
+{
+  SCM alist;
+  size_t i;
+
+  alist = scm_list_n (SCM_UNDEFINED);
+
+  for (i = 0; i < event->n_attributes; i++)
+    {
+      const char *key, *value;
+
+      key = event->attributes[i]->key;
+      value = event->attributes[i]->value;
+
+      alist = scm_acons (scm_from_utf8_symbol (key),
+                         scm_from_utf8_string (value),
+                         alist);
+    }
+
+  if (event->n_tags > 0)
+    {
+      SCM tags = scm_list_n (SCM_UNDEFINED);
+
+      for (i = 0; i < event->n_tags; i++)
+        {
+          tags = scm_append_x
+            (scm_list_2 (tags,
+                         scm_list_1 (scm_from_utf8_string (event->tags[i]))));
+        }
+
+      alist = scm_acons (scm_from_utf8_symbol ("tags"),
+                         tags,
+                         alist);
+    }
+
+  if (event->has_ttl)
+    alist = scm_acons (scm_from_utf8_symbol ("ttl"),
+                       scm_from_double (event->ttl),
+                       alist);
+
+  if (event->has_metric_d)
+    alist = scm_acons (scm_from_utf8_symbol ("metric"),
+                       scm_from_double (event->metric_d),
+                       alist);
+  else if (event->has_metric_f)
+    alist = scm_acons (scm_from_utf8_symbol ("metric"),
+                       scm_from_double ((double) event->metric_f),
+                       alist);
+  else if (event->has_metric_sint64)
+  alist = scm_acons (scm_from_utf8_symbol ("metric"),
+                       scm_from_int64 (event->metric_sint64),
+                       alist);
+
+  if (event->description)
+    alist = scm_acons (scm_from_utf8_symbol ("description"),
+                       scm_from_utf8_string (event->description),
+                       alist);
+
+  if (event->host)
+    alist = scm_acons (scm_from_utf8_symbol ("host"),
+                       scm_from_utf8_string (event->host),
+                       alist);
+
+  if (event->service)
+    alist = scm_acons (scm_from_utf8_symbol ("service"),
+                       scm_from_utf8_string (event->service),
+                       alist);
+
+  if (event->state)
+    alist = scm_acons (scm_from_utf8_symbol ("state"),
+                       scm_from_utf8_string (event->state),
+                       alist);
+
+  return scm_list_1 (alist);
+}
+
+static SCM
+disguile_query (SCM client_smob, SCM query_string)
+{
+  disguile_client_t *client;
+  riemann_message_t *response;
+  char *query;
+  int r;
+  size_t i;
+  SCM results;
+
+  scm_assert_smob_type (disguile_client_tag, client_smob);
+
+  client = (disguile_client_t *) SCM_SMOB_DATA (client_smob);
+  query = scm_to_locale_string (query_string);
+
+  r = riemann_client_send_message_oneshot
+    (client->client,
+     riemann_message_create_with_query (riemann_query_new (query)));
+  if (r != 0)
+    {
+      errno = -r;
+      scm_syserror ("disguile/query");
+    }
+
+  response = riemann_client_recv_message (client->client);
+  if (!response)
+    {
+      scm_syserror ("disguile/query");
+    }
+
+  if (response->ok != 1)
+    {
+      SCM err;
+
+      err = scm_list_1 (scm_from_utf8_string (response->error));
+
+      riemann_message_free (response);
+
+      scm_misc_error ("disguile/query", "~S", err);
+    }
+
+  results = scm_list_n (SCM_UNDEFINED);
+
+  for (i = 0; i < response->n_events; i++)
+    {
+      results = scm_append_x
+        (scm_list_2 (results,
+                     _disguile_event_to_alist (response->events [i])));
+    }
+
+  return results;
+}
+
 void
 init_disguile ()
 {
@@ -268,4 +398,5 @@ init_disguile ()
 
   scm_c_define_gsubr ("disguile/connect", 3, 0, 0, disguile_connect);
   scm_c_define_gsubr ("disguile/send", 1, 0, 1, disguile_send);
+  scm_c_define_gsubr ("disguile/query", 2, 0, 0, disguile_query);
 }

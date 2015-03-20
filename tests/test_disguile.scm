@@ -79,4 +79,55 @@
                                  (ttl . 12345.12345)
                                  (x-guile . "yes")))))
 
+;; disguile/query
+
+(define-class test-disguile/query (<test-case>)
+  (test-connection #:getter test-connection
+                   #:init-value (disguile/connect #:tcp "127.0.0.1" 5555)))
+
+(define-method (test-query/no-connection (self test-disguile/query))
+  (assert-exception (disguile/query #f
+                                    "true")))
+
+(define-method (test-query/invalid-query (self test-disguile/query))
+  (assert-exception (disguile/query (test-connection self)
+                                    "error =")))
+
+(define-method (test-query/no-results (self test-disguile/query))
+  (assert-equal '()
+                (disguile/query (test-connection self)
+                                "service = \"no-such-service\"")))
+
+(define-method (test-query/one-result (self test-disguile/query))
+  (disguile/send (disguile/connect #:tcp "127.0.0.1" 5555)
+                 '((state . "ok")
+                   (service . "disguile/query/one")
+                   (host . "localhost")
+                   (description . "disguile unit test: query")
+                   (tags . ("disguile" "query"))
+                   (metric . 4.2)
+                   (ttl . 60.5)
+                   (x-guile . "yes")))
+  (let* ((results (disguile/query (test-connection self)
+                                  "service = \"disguile/query/one\""))
+         (event (car results)))
+    (assert-equal 1 (length results))
+
+    (assert-equal "ok"
+                  (assoc-ref event 'state))
+    (assert-equal "disguile/query/one"
+                  (assoc-ref event 'service))
+    (assert-equal "localhost"
+                  (assoc-ref event 'host))
+    (assert-equal "disguile unit test: query"
+                  (assoc-ref event 'description))
+    (assert-equal 4.2
+                  (assoc-ref event 'metric))
+    (assert-equal 60.5
+                  (assoc-ref event 'ttl))
+    (assert-equal "yes"
+                  (assoc-ref event 'x-guile))
+    (assert-equal '("disguile" "query")
+                  (assoc-ref event 'tags))))
+
 (exit-with-summary (run-all-defined-test-cases))
