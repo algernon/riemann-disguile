@@ -16,7 +16,20 @@ The library uses [semantic versioning][semver].
 Installation
 ------------
 
-No can do yet.
+The library follows the usual autotools way of installation, and
+requires [guile][guile] and [riemann-c-client][rcc] to be available
+prior to building. To run the test suite, one also needs
+[guile-lib][guile-lib] installed.
+
+ [guile-lib]: http://www.nongnu.org/guile-lib/
+
+    $ git clone git://github.com/algernon/riemann-disguile.git
+    $ cd riemann-disguile
+    $ autoreconf -i
+    $ ./configure && make && make check && make install
+
+From this point onward, the library is installed and fully functional,
+and can be used by Guile programs, by using the `disguile` module.
 
 Demo
 ----
