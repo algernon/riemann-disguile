@@ -1,8 +1,6 @@
 riemann-disguile
 ================
 
-[![Build Status](https://img.shields.io/travis/algernon/riemann-disguile/master.svg?style=flat-square)](https://travis-ci.org/algernon/riemann-disguile)
-
 This is a [Riemann][riemann] client library for the [Guile][guile]
 programming language, built on top of [riemann-c-client][rcc]. For
 now, it's a work in progress library.
