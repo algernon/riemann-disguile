@@ -45,10 +45,10 @@ included below. More examples can be found in the [test suite][tests].
 (define client (disguile/connect))
 
 (disguile/send client
-  '((host . "localhost")
-    (service . "demo-client")
-    (state . "ok")
-    (tags . ("demo-client" "riemann-disguile"))
+  '((host     . "localhost")
+    (service  . "demo-client")
+    (state    . "ok")
+    (tags     . ("demo-client" "riemann-disguile"))
     (x-client . "riemann-disguile")))
 ```
 
