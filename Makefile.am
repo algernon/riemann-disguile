@@ -6,7 +6,7 @@ ACLOCAL_AMFLAGS				= -Im4
 VERSION					= @VERSION@${SNAPSHOT_VERSION}
 
 # -- Libraries --
-lib_LTLIBRARIES				= lib/libriemann-disguile.la
+extlib_LTLIBRARIES				= lib/libriemann-disguile.la
 
 lib_libriemann_disguile_la_CFLAGS	= ${AM_CFLAGS} ${GUILE_CFLAGS} ${RIEMANN_C_CFLAGS}
 lib_libriemann_disguile_la_LDFLAGS	= \
@@ -14,6 +14,11 @@ lib_libriemann_disguile_la_LDFLAGS	= \
 lib_libriemann_disguile_la_LIBADD	= ${GUILE_LIBS} ${RIEMANN_C_LIBS}
 lib_libriemann_disguile_la_SOURCES	= \
 	lib/disguile.c
+
+extlibdir				= @extlibdir@
+
+scmdir					= @scmdir@
+scm_DATA				= lib/disguile.scm
 
 # -- Testcases --
 TESTS					= tests/run_tests

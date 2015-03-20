@@ -24,6 +24,9 @@ AC_FUNC_REALLOC
 PKG_PROG_PKG_CONFIG
 
 PKG_CHECK_MODULES(GUILE, guile-2.0)
+AC_SUBST(extlibdir, [`pkg-config guile-2.0 --variable extensiondir`])
+AC_SUBST(scmdir, [`pkg-config guile-2.0 --variable sitedir`])
+
 PKG_CHECK_MODULES(RIEMANN_C, riemann-client >= 1.4.0)
 
 AC_CONFIG_FILES([
