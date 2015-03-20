@@ -30,14 +30,37 @@ typedef struct
 } disguile_client_t;
 
 static SCM
-disguile_connect (SCM s_type, SCM s_host, SCM s_port)
+disguile_connect (SCM rest)
 {
-  SCM smob;
+  SCM smob, s_type = NULL, s_host = NULL, s_port = NULL;
   disguile_client_t *scm_client;
   riemann_client_t *client;
   riemann_client_type_t real_type;
   int port;
+  long i;
   char *type, *host;
+
+  if (scm_ilength (rest) > 3)
+    scm_wrong_num_args (scm_from_utf8_symbol ("disguile/connect"));
+
+  for (i = 0; i < scm_ilength (rest); i++)
+    {
+      SCM current = scm_list_ref (rest, scm_from_int64 (i));
+
+      if (scm_is_keyword (current))
+        s_type = current;
+      else if (scm_is_string (current))
+        s_host = current;
+      else if (scm_is_number (current))
+        s_port = current;
+    }
+
+  if (!s_type)
+    s_type = scm_from_utf8_keyword ("tcp");
+  if (!s_host)
+    s_host = scm_from_utf8_string ("127.0.0.1");
+  if (!s_port)
+    s_port = scm_from_int32 (5555);
 
   type = scm_to_locale_string
     (scm_symbol_to_string (scm_keyword_to_symbol (s_type)));
@@ -396,7 +419,7 @@ init_disguile ()
   scm_set_smob_free (disguile_client_tag, _disguile_client_free);
   scm_set_smob_print (disguile_client_tag, _disguile_client_print);
 
-  scm_c_define_gsubr ("disguile/connect", 3, 0, 0, disguile_connect);
+  scm_c_define_gsubr ("disguile/connect", 0, 0, 1, disguile_connect);
   scm_c_define_gsubr ("disguile/send", 1, 0, 1, disguile_send);
   scm_c_define_gsubr ("disguile/query", 2, 0, 0, disguile_query);
 }

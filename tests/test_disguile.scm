@@ -30,6 +30,22 @@
   (assert-equal "#<disguile-client #:tcp 127.0.0.1:5555>"
                 (format #f "~a" (disguile/connect #:tcp "127.0.0.1" 5555))))
 
+(define-method (test-connect/partial (self test-disguile/connect))
+  (assert-equal "#<disguile-client #:tcp 127.0.0.1:5555>"
+                (format #f "~a" (disguile/connect)))
+  (assert-equal "#<disguile-client #:udp 127.0.0.1:5555>"
+                (format #f "~a" (disguile/connect #:udp)))
+  (assert-equal "#<disguile-client #:tcp 127.0.0.1:5555>"
+                (format #f "~a" (disguile/connect "127.0.0.1")))
+  (assert-equal "#<disguile-client #:tcp 127.0.0.1:5555>"
+                (format #f "~a" (disguile/connect 5555)))
+  (assert-equal "#<disguile-client #:udp 127.0.0.1:5555>"
+                (format #f "~a" (disguile/connect 5555 #:udp))))
+
+(define-method (test-connect/too-many-args (self test-disguile/connect))
+  (assert-exception
+   (disguile/connect #:tcp "127.0.0.1" 5555 #t)))
+
 ;; disguile/send
 
 (define-class test-disguile/send (<test-case>)

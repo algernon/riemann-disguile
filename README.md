@@ -42,7 +42,7 @@ included below. More examples can be found in the [test suite][tests].
 ```scheme
 (use-modules (riemann disguile))
 
-(define client (disguile/connect #:tcp "127.0.0.1" 5555))
+(define client (disguile/connect))
 
 (disguile/send client
   '((host . "localhost")
