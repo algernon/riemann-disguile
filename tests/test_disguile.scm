@@ -9,8 +9,8 @@
 (define-class test-disguile/connect (<test-case>))
 
 (define-method (test-connect/fail (self test-disguile/connect))
-  (assert-equal #f
-                (disguile/connect #:tcp "127.0.0.1" 6555)))
+  (assert-exception
+   (disguile/connect #:tcp "127.0.0.1" 6555)))
 
 (define-method (test-connect/tcp (self test-disguile/connect))
   (assert-true
@@ -23,8 +23,8 @@
              #f))))
 
 (define-method (test-connect/invalid (self test-disguile/connect))
-  (assert-equal #f
-                (disguile/connect #:invalid "127.0.0.1" 6555)))
+  (assert-exception
+   (disguile/connect #:invalid "127.0.0.1" 6555)))
 
 (define-method (test-connect/display (self test-disguile/connect))
   (assert-equal "#<disguile-client #:tcp 127.0.0.1:5555>"

@@ -53,7 +53,7 @@ disguile_connect (SCM s_type, SCM s_host, SCM s_port)
       free (type);
       free (host);
 
-      return SCM_BOOL_F;
+      scm_wrong_type_arg ("disguile/connect", 1, s_type);
     }
 
   client = riemann_client_create (real_type, host, port);
@@ -62,7 +62,7 @@ disguile_connect (SCM s_type, SCM s_host, SCM s_port)
 
   if (!client)
     {
-      return SCM_BOOL_F;
+      scm_syserror ("disguile/connect");
     }
 
   scm_client = (disguile_client_t *)
@@ -237,15 +237,22 @@ disguile_send (SCM client_smob, SCM events)
     }
 
   if (n_events)
-    r = riemann_client_send_message_oneshot (client->client, message);
+    {
+      r = riemann_client_send_message_oneshot (client->client, message);
+
+      if (r != 0)
+        {
+          errno = -r;
+
+          scm_syserror ("disguile/send");
+        }
+    }
   else
     {
       riemann_message_free (message);
-      r = -1;
-    }
 
-  if (r != 0)
-    return SCM_BOOL_F;
+      return SCM_BOOL_F;
+    }
 
   return SCM_BOOL_T;
 }
