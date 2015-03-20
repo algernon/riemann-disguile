@@ -1,4 +1,4 @@
-(use-modules (disguile)
+(use-modules (riemann disguile)
              (oop goops)
              (ice-9 format)
              (ice-9 pretty-print)

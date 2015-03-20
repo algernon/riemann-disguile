@@ -29,7 +29,7 @@ prior to building. To run the test suite, one also needs
     $ ./configure && make && make check && make install
 
 From this point onward, the library is installed and fully functional,
-and can be used by Guile programs, by using the `disguile` module.
+and can be used by Guile programs.
 
 Demo
 ----
@@ -40,7 +40,7 @@ included below. More examples can be found in the [test suite][tests].
  [tests]: https://github.com/algernon/riemoon/tree/master/tests
 
 ```scheme
-(use-modules (disguile))
+(use-modules (riemann disguile))
 
 (define client (disguile/connect #:tcp "127.0.0.1" 5555))
 

@@ -1,4 +1,4 @@
-(define-module (disguile)
+(define-module (riemann disguile)
   #:export (disguile/connect
             disguile/send
             disguile/query))

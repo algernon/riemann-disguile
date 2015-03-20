@@ -17,8 +17,8 @@ lib_libriemann_disguile_la_SOURCES	= \
 
 extlibdir				= @extlibdir@
 
-scmdir					= @scmdir@
-scm_DATA				= lib/disguile.scm
+scmdir					= @scmdir@/riemann
+scm_DATA				= lib/riemann/disguile.scm
 
 # -- Testcases --
 TESTS					= tests/run_tests
