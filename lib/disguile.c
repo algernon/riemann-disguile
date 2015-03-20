@@ -119,60 +119,133 @@ _disguile_client_print (SCM client_smob, SCM port,
   return 1;
 }
 
-static SCM
-disguile_send (SCM client_smob, SCM events)
+#define _disguile_event_set_one_string(event, property, current)        \
+  {                                                                     \
+    char *value = scm_to_locale_string (scm_cdr (current));             \
+    riemann_event_set_one (event, property, value);                     \
+    free (value);                                                       \
+  }
+
+static riemann_event_t *
+_disguile_alist_to_event (SCM alist)
 {
-  disguile_client_t *client;
+  riemann_event_t *event;
   long i;
 
-  scm_assert_smob_type (disguile_client_tag, client_smob);
+  if (scm_ilength (alist) <= 0)
+    return NULL;
 
-  client = (disguile_client_t *) SCM_SMOB_DATA (client_smob);
+  event = riemann_event_new ();
 
-  if (scm_ilength (events) < 0)
-    return SCM_BOOL_F;
-
-  for (i = 0; i < scm_ilength (events); i++)
+  for (i = 0; i < scm_ilength (alist); i++)
     {
-      SCM current = scm_list_ref (events, scm_from_int64 (i));
+      SCM current = scm_list_ref (alist, scm_from_int64 (i));
       char *key;
 
       key = scm_to_locale_string (scm_symbol_to_string (scm_car (current)));
 
       if (strcmp (key, "time") == 0)
         {
+          int64_t value = scm_to_int64 (scm_cdr (current));
+
+          riemann_event_set_one (event, TIME, value);
         }
       else if (strcmp (key, "state") == 0)
         {
+          _disguile_event_set_one_string (event, STATE, current);
         }
       else if (strcmp (key, "service") == 0)
         {
-          char *value = scm_to_locale_string (scm_cdr (current));
-
-          printf ("D: %s => %s\n", key, value);
-          free (value);
+          _disguile_event_set_one_string (event, SERVICE, current);
         }
       else if (strcmp (key, "host") == 0)
         {
+          _disguile_event_set_one_string (event, HOST, current);
         }
       else if (strcmp (key, "description") == 0)
         {
+          _disguile_event_set_one_string (event, DESCRIPTION, current);
         }
       else if (strcmp (key, "tags") == 0)
         {
+          SCM taglist = scm_cdr (current);
+          long n;
+
+          for (n = 0; n < scm_ilength (taglist); n++)
+            {
+              SCM scm_tag = scm_list_ref (taglist, scm_from_int64 (n));
+              char *tag;
+
+              tag = scm_to_locale_string (scm_tag);
+
+              riemann_event_tag_add (event, tag);
+              free (tag);
+            }
         }
       else if (strcmp (key, "ttl") == 0)
         {
+          double value = scm_to_double (scm_cdr (current));
+
+          riemann_event_set_one (event, TTL, value);
         }
       else if (strcmp (key, "metric") == 0)
         {
+          double value = scm_to_double (scm_cdr (current));
+
+          riemann_event_set_one (event, METRIC_D, value);
         }
       else
         {
+          char *value = scm_to_locale_string (scm_cdr (current));
+
+          riemann_event_attribute_add (event,
+                                       riemann_attribute_create (key, value));
+          free (value);
         }
 
       free (key);
     }
+
+  return event;
+}
+
+static SCM
+disguile_send (SCM client_smob, SCM events)
+{
+  disguile_client_t *client;
+  long i;
+  int r, n_events = 0;
+  riemann_message_t *message;
+
+  scm_assert_smob_type (disguile_client_tag, client_smob);
+
+  client = (disguile_client_t *) SCM_SMOB_DATA (client_smob);
+
+  message = riemann_message_new ();
+
+  for (i = 0; i < scm_ilength (events); i++)
+    {
+      SCM current = scm_list_ref (events, scm_from_int64 (i));
+      riemann_event_t *event;
+
+      event = _disguile_alist_to_event (current);
+      if (event)
+        {
+          riemann_message_append_events (message, event, NULL);
+          n_events++;
+        }
+    }
+
+  if (n_events)
+    r = riemann_client_send_message_oneshot (client->client, message);
+  else
+    {
+      riemann_message_free (message);
+      r = -1;
+    }
+
+  if (r != 0)
+    return SCM_BOOL_F;
 
   return SCM_BOOL_T;
 }
@@ -187,5 +260,5 @@ init_disguile ()
   scm_set_smob_print (disguile_client_tag, _disguile_client_print);
 
   scm_c_define_gsubr ("disguile/connect", 3, 0, 0, disguile_connect);
-  scm_c_define_gsubr ("disguile/send", 2, 0, 0, disguile_send);
+  scm_c_define_gsubr ("disguile/send", 1, 0, 1, disguile_send);
 }

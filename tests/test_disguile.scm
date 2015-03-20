@@ -42,12 +42,41 @@
 
 (define-method (test-send/invalid-events (self test-disguile/send))
   (assert-equal (disguile/send (test-connection self)
+                               '())
+                #f))
+
+(define-method (test-send/invalid-events-2 (self test-disguile/send))
+  (assert-equal (disguile/send (test-connection self)
                                #f)
+                #f))
+
+(define-method (test-send/invalid-events-3 (self test-disguile/send))
+  (assert-equal (disguile/send (test-connection self)
+                               "foobar")
                 #f))
 
 (define-method (test-send/single (self test-disguile/send))
   (assert-equal (disguile/send (test-connection self)
                                '((service . "disguile unit tests")))
+                #t))
+
+(define-method (test-send/multiple (self test-disguile/send))
+  (assert-equal (disguile/send (test-connection self)
+                               '((service . "disguile unit tests"))
+                               '((service . "disguile unit tests #2")))
+                #t))
+
+(define-method (test-send/all-fields (self test-disguile/send))
+  (assert-equal (disguile/send (test-connection self)
+                               '((time . 12345)
+                                 (state . "ok")
+                                 (service . "disguile unit tests - all fields")
+                                 (host . "localhost")
+                                 (description . "some description")
+                                 (tags . ("tag-1" "tag-2"))
+                                 (metric . 4.2)
+                                 (ttl . 12345.12345)
+                                 (x-guile . "yes")))
                 #t))
 
 (exit-with-summary (run-all-defined-test-cases))
