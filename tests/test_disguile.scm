@@ -130,4 +130,9 @@
     (assert-equal '("disguile" "query")
                   (assoc-ref event 'tags))))
 
+(define-method (test-query/udp (self test-disguile/query))
+  (assert-exception (disguile/query
+                     (disguile/connect #:udp "127.0.0.1" 5555)
+                     "true")))
+
 (exit-with-summary (run-all-defined-test-cases))
