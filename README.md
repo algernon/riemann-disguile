@@ -29,6 +29,16 @@ included below. More examples can be found in the [test suite][tests].
  [tests]: https://github.com/algernon/riemoon/tree/master/tests
 
 ```scheme
+(use-modules (disguile))
+
+(define client (disguile/connect #:tcp "127.0.0.1" 5555))
+
+(disguile/send client
+  '((host . "localhost")
+    (service . "demo-client")
+    (state . "ok")
+    (tags . ("demo-client" "riemann-disguile"))
+    (x-client . "riemann-disguile")))
 ```
 
 License
